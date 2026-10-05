@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#09090b" />
+  <title>Genjutsu Studio</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div>
+          <div class="brand-name">GENJUTSU<span>STUDIO</span></div>
+          <div class="brand-sub">VIDEO TRANSFORMATION LAB</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="status-dot" id="apiDot"></span>
+        <span id="apiStatus">Checking API</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <div class="section-label">WORKFLOW</div>
+        <button class="mode active" data-mode="motion">
+          <span class="mode-icon">✦</span>
+          <span><b>Motion Transfer</b><small>Transfer movement to references</small></span>
+        </button>
+        <button class="mode" data-mode="object">
+          <span class="mode-icon">◈</span>
+          <span><b>Object Swap</b><small>Replace selected elements</small></span>
+        </button>
+
+        <div class="side-divider"></div>
+        <div class="section-label">PIPELINE</div>
+        <div class="step active"><i>01</i><span>Source video</span></div>
+        <div class="step"><i>02</i><span>References</span></div>
+        <div class="step"><i>03</i><span>Prompt</span></div>
+        <div class="step"><i>04</i><span>Generate</span></div>
+
+        <div class="side-note">
+          <b>Your API key stays server-side.</b>
+          <p>The browser receives only signed media upload URLs.</p>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div class="hero">
+          <div>
+            <div class="eyebrow">AI VIDEO WORKSPACE</div>
+            <h1 id="title">Motion Transfer</h1>
+            <p id="description">Preserve the motion, camera movement and timing while rebuilding the scene around your references.</p>
+          </div>
+          <div class="pill">GENJUTSU</div>
+        </div>
+
+        <div class="grid">
+          <section class="card source-card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">01 / SOURCE</div>
+                <h2>Reference video</h2>
+              </div>
+              <span class="counter" id="videoCounter">0 / 1</span>
+            </div>
+
+            <input id="videoInput" type="file" accept="video/*" hidden />
+            <label for="videoInput" class="dropzone video-drop" id="videoDrop">
+              <div class="upload-orb">↑</div>
+              <b>Drop a video here</b>
+              <span>or click to browse</span>
+              <small>Recommended: 4–30 seconds</small>
+            </label>
+
+            <div id="videoPreview" class="media-preview hidden">
+              <video controls playsinline></video>
+              <button class="remove-btn" id="removeVideo">×</button>
+              <div class="media-meta" id="videoMeta"></div>
+            </div>
+          </section>
+
+          <section class="card refs-card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">02 / REFERENCES</div>
+                <h2>Characters & objects</h2>
+              </div>
+              <span class="counter"><span id="refCount">0</span> / 8</span>
+            </div>
+
+            <input id="imageInput" type="file" accept="image/*" multiple hidden />
+            <label for="imageInput" class="dropzone ref-drop">
+              <div class="upload-orb">＋</div>
+              <b>Add reference images</b>
+              <span>Characters, products, clothes or objects</span>
+              <small>Up to 8 images</small>
+            </label>
+            <div class="thumbs" id="thumbs"></div>
+          </section>
+
+          <section class="card prompt-card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">03 / DIRECTION</div>
+                <h2>Prompt</h2>
+              </div>
+              <span class="counter" id="charCount">0 / 10,000</span>
+            </div>
+            <textarea id="prompt" maxlength="10000" placeholder="Describe what should change. Example: Replace the main character with the referenced person, preserve the original movement, camera and clothing details."></textarea>
+            <div class="prompt-suggestions">
+              <button data-prompt="Preserve the original motion, camera movement and timing. Keep the reference character consistent across the entire clip.">Preserve motion</button>
+              <button data-prompt="Replace the main subject with the referenced character and keep the background and camera composition unchanged.">Keep background</button>
+              <button data-prompt="Keep the result photorealistic with consistent identity, proportions, lighting and clothing across every frame.">Photorealistic</button>
+            </div>
+          </section>
+
+          <section class="card settings-card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">04 / OUTPUT</div>
+                <h2>Generation settings</h2>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <label>Resolution</label>
+              <div class="segmented">
+                <button data-res="480p">480p</button>
+                <button class="active" data-res="720p">720p</button>
+                <button data-res="1080p">1080p</button>
+              </div>
+            </div>
+
+            <div class="cost-note">
+              <span>MODEL</span>
+              <b id="modelName">Genjutsu Motion Transfer</b>
+              <small>Generation cost is charged by the connected provider.</small>
+            </div>
+
+            <button class="generate" id="generateBtn">
+              <span>Generate video</span>
+              <span>→</span>
+            </button>
+
+            <button class="cancel hidden" id="cancelBtn">Cancel generation</button>
+            <div class="error hidden" id="error"></div>
+          </section>
+        </div>
+
+        <section class="result card" id="resultCard">
+          <div class="card-head">
+            <div>
+              <div class="card-kicker">RESULT</div>
+              <h2>Your generation</h2>
+            </div>
+            <span class="result-status" id="resultStatus">Waiting</span>
+          </div>
+
+          <div class="result-empty" id="resultEmpty">
+            <div class="result-icon">◇</div>
+            <b>Your generated video will appear here</b>
+            <span>Upload a source video, add references and generate.</span>
+          </div>
+
+          <div class="result-loading hidden" id="resultLoading">
+            <div class="spinner"></div>
+            <b id="loadingText">Preparing generation…</b>
+            <span id="loadingSub">This can take a few minutes.</span>
+          </div>
+
+          <div class="result-video hidden" id="resultVideo">
+            <video controls playsinline id="outputVideo"></video>
+            <div class="result-actions">
+              <a id="downloadBtn" class="download" target="_blank" rel="noopener">Download result ↗</a>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <span>GENJUTSU STUDIO · ORIGINAL IMPLEMENTATION</span>
+      <span>Built for experimentation</span>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
